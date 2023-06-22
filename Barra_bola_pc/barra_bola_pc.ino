@@ -10,6 +10,7 @@
 float modificar(float valor);
 float readPosition(float previo);
 void menu();
+int tendencia(float valor1, float valor2);
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
@@ -17,6 +18,8 @@ float kp = 1.0;
 float kd = 0.0;
 float ki = 0.0;
 double Setpoint = 23.0, Input, Output, ServoOutput;
+
+String variables[4] = {"Kp", "Kd", "Ki", "Setpoint"};
 
 PID myPID(&Input, &Output, &Setpoint, kp, ki, kd, DIRECT);
 
@@ -33,11 +36,10 @@ void setup()
 
   pinMode(13, OUTPUT);
   digitalWrite(13, 1);
-  String nivelar = "";
   while (!Serial.available())
   {
   }
-  nivelar = Serial.readString();
+  Serial.readString();
   digitalWrite(13, 0);
 }
 
@@ -55,14 +57,19 @@ void loop()
 
 float readPosition(float previo)
 {
+  static float historico[2] = {0.0, 0.0};
+  int tend = tendencia(historico[1], historico[0]);
+  int promedio = (historico[1] - historico[0]) / 2;
   delay(20);
   double cm;
   cm = sonar.convert_cm(sonar.ping_median(5));
 
   if (cm >= 41 || cm == 0)
   {
-    cm = previo;
+    cm = previo + promedio * tend;
   }
+  historico[0] = historico[1];
+  historico[1] = previo;
   return cm;
 }
 
@@ -83,18 +90,30 @@ void menu()
   static bool menuVisualizado = false;
   static bool opcionElegida = false;
   static int opcion = 0;
+  float valores[4] = {kp, kd, ki, Setpoint};
   if (!menuVisualizado)
   {
-    String visualizar = "Ingrese la opcion:\nOpcion 1: Kp\nOpcion 2: Kd\nOpcion 3: Ki\nOpcion 4: Setpoint";
+    String visualizar = "Ingrese la opcion:";
+    for (int i = 0; i < 4; i++)
+    {
+      visualizar += "\nOpcion ";
+      visualizar += i + 1;
+      visualizar += ": ";
+      visualizar += variables[i];
+      visualizar += " - ";
+      visualizar += valores[i];
+    }
+
     Serial.println(visualizar);
     menuVisualizado = true;
   }
+
   if (!opcionElegida)
   {
     if (Serial.available())
     {
       opcion = Serial.parseInt();
-      String descarte = Serial.readString();
+      Serial.readString();
       if (opcion >= 1 && opcion <= 4)
       {
         Serial.print("Eligio la opcion ");
@@ -136,4 +155,14 @@ void menu()
       }
     }
   }
+}
+
+int tendencia(float valor1, float valor2)
+{
+  float creciente = valor1 - valor2;
+  if (creciente <= 0)
+  {
+    return -1;
+  }
+  return 1;
 }

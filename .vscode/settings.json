@@ -1,0 +1,15 @@
+{
+  "C_Cpp.errorSquiggles": "Disabled",
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.fontSize": 18,
+  "[python]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools" //"ms-python.python"
+  },
+  "files.associations": {
+    "*.tcc": "cpp"
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
+  }
+}
